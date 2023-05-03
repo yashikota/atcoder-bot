@@ -1,3 +1,4 @@
+use reqwest::Error;
 use worker::*;
 
 mod utils;
@@ -12,6 +13,13 @@ fn log_request(req: &Request) {
     );
 }
 
+fn fetch_contest_info() -> Result<serde_json::Value, Error> {
+    let url = "https://abc-latest.deno.dev/";
+    let res = reqwest::get(url)?.text()?;
+    let json: serde_json::Value = serde_json::from_str(&res).unwrap();
+    Ok(json)
+}
+
 #[event(fetch)]
 pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Response> {
     log_request(&req);
@@ -22,7 +30,7 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
 
     router
         .get("/", |_, _| {
-            let res = "Atcoder-bot";
+            let res = fetch_contest_info().unwrap();
             Response::ok(res)
         })
         .run(req, env)
